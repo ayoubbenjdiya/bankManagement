@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html
+		xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<title>Gestion des operations</title>
+	<link href="css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" type="text/css">
+	<link href="css/form.css" rel="stylesheet" th:href="@{/css/form.css}" type="text/css">
+</head>
+<body>
+<div class="container-fluid">
+	<!-- nav bar-->
+	<header>
+		<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" th:href="@{/index}">Home</a>
+				</div>
+				<ul class="nav navbar-nav">
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_agents}">Gestion des agents</a></li>
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_comptes}">Gestion des comptes</a></li>
+					<li class="active" sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_operations}">Gestion des operations</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a th:href="@{/logout}">Se déconnecter</a></li>
+					</a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+
+	<div class="row" style="text-align: center">
+		<div class="panel-body">
+			<form method="get" th:action="@{/consultationCompte}">
+				<div>
+					<input name="codeCompte" placeholder="code compte" style="text-align: center" required type="text"/>
+					<button class="btn btn-success" type="submit">Recherche</button>
+				</div>
+				<div class="text-danger" th:if="${exeption}" th:text="${exeption.message}"></div>
+			</form>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-6" th:if="${cpt}">
+			<div class="panel panel-success" style="height: 250px">
+				<div class="panel-heading">Information</div>
+				<div class="panel-body">
+					<div>
+						<label>nom client : </label>
+						<label th:text="${cpt.client.nom}"></label>
+					</div>
+					<div>
+						<label>Code compte : </label>
+						<label th:text="${cpt.codeCompte}"></label>
+					</div>
+					<div>
+						<label>Solde : </label>
+						<label th:text="${cpt.solde}"></label>
+					</div>
+					<div>
+						<label>Date de creation : </label>
+						<label th:text="${cpt.dateCreation}"></label>
+					</div>
+
+					<div th:if="${cpt.class.simpleName=='CompteEpargne'}">
+						<label>Type : Compte Epargne</label>
+						<br/>
+						<label>Taux : </label>
+						<label th:text="${cpt.taux}"></label>
+					</div>
+
+					<div th:if="${cpt.class.simpleName=='CompteCourant'}">
+						<label>Type : Compte courant</label>
+						<br/>
+						<label>Decouvert : </label>
+						<label th:text="${cpt.decouvert}"></label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6" th:if="${cpt}">
+			<div class="panel panel-success" style="height: 250px">
+				<div class="panel-heading">Operation</div>
+				<div class="panel-body">
+					<form method="post" th:action="@{/saveOperation}">
+						<div>
+							<label>Compte : </label>
+							<input name="codeCompte" th:value="${cpt.codeCompte}" required type="hidden">
+							<label th:text="${cpt.codeCompte}"></label>
+						</div>
+						<div>
+							<input checked name="typeOperation"
+							       onchange="document.getElementById('vers_id').style.display='none'" type="radio"
+							       value="versement">
+							<label>versement</label>
+							<input name="typeOperation"
+							       onchange="document.getElementById('vers_id').style.display='none'"
+							       type="radio"
+							       value="retrait">
+							<label>retrait</label>
+
+							<input name="typeOperation"
+							       onchange="document.getElementById('vers_id').style.display='block'"
+							       type="radio"
+							       value="virment">
+							<label>virement</label>
+
+						</div>
+
+						<div>
+							<label>Montant:</label>
+							<input name="montant" type=number required>
+						</div>
+
+						<div id="vers_id" style="display:none">
+							<label>vers:</label>
+							<input name="codeCompte2" type="text">
+						</div>
+						<button class="btn btn-primary" type="submit">Valider</button>
+
+						<div class="text-danger"
+						     th:text="${#httpServletRequest.getParameter('exceptionOperation')}"></div>
+
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row" style="text-align: center" th:if="${cpt}">
+		<div class="panel panel-primary ">
+			<div class="panel-heading">liste des operation</div>
+			<div class="panel-body">
+				<table class="table table-striped">
+					<tr>
+						<th style="text-align: center">numero</th>
+						<th style="text-align: center">type</th>
+						<th style="text-align: center">date</th>
+						<th style="text-align: center">Montant</th>
+					</tr>
+					<tr th:each="o:${listOperation}">
+						<td th:text="${o.numero}"></td>
+						<td th:text="${o.class.simpleName}"></td>
+						<td th:text="${o.date}"></td>
+						<td th:text="${o.nomtant}"></td>
+					</tr>
+				</table>
+				<div class="container-fluid">
+					<ul class="nav nav-pills" style="margin-left: 40%">
+						<li th:each="p,status:${pages}">
+							<a style="text-decoration: underline;background-color: #bce8f1" href="#"
+							   th:if="${status.index==numPage}"
+							   th:text="${status.index}"></a>
+							<a th:href="@{/consultationCompte(codeCompte=${codeCompte},page=${status.index})}"
+							   th:if="${status.index != numPage}"
+							   th:text="${status.index}"></a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+</body>
+</html>

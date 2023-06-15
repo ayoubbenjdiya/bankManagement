@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html
+		xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<title>home</title>
+	<link href="css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" type="text/css">
+	<link href="css/form.css" rel="stylesheet" th:href="@{/css/form.css}" type="text/css">
+</head>
+<body>
+<div class="container-fluid">
+	<!-- nav bar-->
+	<header>
+		<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+			<div class="container-fluid">
+				<div class="navbar-header active">
+					<a class="navbar-brand" th:href="@{/index}">Home</a>
+				</div>
+				<ul class="nav navbar-nav">
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_agents}">Gestion des agents</a></li>
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_comptes}">Gestion des comptes</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_operations}">Gestion des operations</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a th:href="@{/logout}">Se déconnecter</a></li>
+					</a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+	<h1 sec:authorize="hasRole('ROLE_AD')" style="text-align: center" >ESPACE ADMINISTRATEUR</h1>
+	<h1 sec:authorize="hasRole('ROLE_AG')" style="text-align: center">ESPACE AGENT</h1>
+
+
+</div>
+</body>
+</html>

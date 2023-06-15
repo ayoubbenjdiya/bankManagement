@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html
+		xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<title>Gestion des comptes</title>
+	<link href="css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" type="text/css">
+	<link href="css/form.css" rel="stylesheet" th:href="@{/css/form.css}" type="text/css">
+</head>
+<script>
+    function openForm() {
+        document.getElementById("myForm").style.display = "block";
+    }
+
+    function closeForm() {
+        document.getElementById("myForm").style.display = "none";
+    }
+</script>
+
+<body>
+
+<div class="container-fluid">
+	<!-- nav bar-->
+	<header>
+		<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" th:href="@{/index}">Home</a>
+				</div>
+				<ul class="nav navbar-nav">
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_agents}">Gestion des agents</a></li>
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li class="active" sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_comptes}">Gestion des comptes</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_operations}">Gestion des operations</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a th:href="@{/logout}">Se déconnecter</a></li>
+					</a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+
+	<!-- recherche-->
+	<form method="post" th:action="@{/gestion_des_comptes/rechercheCompte}">
+		<div style="margin-bottom: 10px;text-align: center">
+			<div>
+				<input name="input" required type="text" placeholder="recherche" style="text-align: center">
+			</div>
+			<div>
+				<input checked name="par"
+				       type="radio"
+				       value="code">
+				<label>par code</label>
+				<input name="par"
+				       type="radio"
+				       value="nom">
+				<label>par nom</label>
+				<input name="par"
+				       type="radio"
+				       value="cin">
+				<label>par cin</label>
+				<button class="btn btn-primary" type="submit">Recherche</button>
+			</div>
+
+		</div>
+	</form>
+
+	<!-- liste des comptes-->
+	<div class="panel panel-success">
+		<div class="panel-heading">liste des comptes</div>
+		<div class="panel-body">
+			<table class="table table-striped" th:if="${comptePage}">
+				<tr>
+					<th>code</th>
+					<th>date</th>
+					<th>solde</th>
+					<th>decouvert/taux</th>
+					<th>type</th>
+					<th></th>
+					<th></th>
+					<th></th>
+
+				</tr>
+				<tr th:each="c:${comptePage}">
+					<td th:text="${c.codeCompte}"></td>
+					<td th:text="${c.dateCreation.toString().split(' ')[0]}"></td>
+					<td th:text="${c.solde}"></td>
+					<td>
+						<span th:if="${c.class.simpleName=='CompteCourant'}" th:text="${c.decouvert}"></span>
+						<span th:if="${c.class.simpleName=='CompteEpargne'}" th:text="${c.taux}"></span>
+					</td>
+					<td>
+						<span th:if="${c.class.simpleName=='CompteCourant'}">Compte Courant</span>
+						<span th:if="${c.class.simpleName=='CompteEpargne'}">Compte Epargne</span>
+					</td>
+					<td><a class="btn btn-info btn-xs"
+					       th:href="@{/consultationCompte(codeCompte=${c.codeCompte})}">info</a>
+					</td>
+					<td><a class="btn btn-primary btn-xs"
+					       th:href="@{/gestion_des_comptes/edit(codeCompte=${c.codeCompte},page=${numPage})}">editer</a>
+					</td>
+					<td><a class="btn btn-danger btn-xs"
+					       th:href="@{/gestion_des_comptes/supprimer(codeCompte=${c.codeCompte},page=${numPage})}">supprimer</a>
+					</td>
+				</tr>
+			</table>
+			<div class="container-fluid ">
+				<ul class="nav nav-pills">
+					<li th:each="p,status:${nombrePage}">
+						<a href="#" style="text-decoration: underline;background-color: #bce8f1"
+						   th:if="${status.index==numPage}"
+						   th:text="${status.index}"></a>
+						<a th:href="@{/gestion_des_comptes(page=${status.index})}"
+						   th:if="${status.index != numPage}"
+						   th:text="${status.index}"></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<!-- alert msg-->
+	<div class="text-danger"
+	     th:if="${#httpServletRequest.getParameter('statut')!=null}">
+		<script>
+            alert("Le compte a été bien supprimé");
+		</script>
+	</div>
+
+	<!-- update form-->
+	<div class="form-popup" id="myForm" th:if="${compteE}">
+		<form class="form-container" method="post" th:action="@{/gestion_des_comptes/modifier}">
+
+			<input name="codeCompte" th:value="${compteE.codeCompte}" type="hidden">
+			<input name="codeClient" th:value="${compteE.client.code_utilisateur}" type="hidden">
+			<input name="type" th:value="${compteE.class.simpleName}" type="hidden">
+			<input name="page" th:value="${numPage}" type="hidden">
+			<label>date :</label>
+			<input name="date" placeholder="Entrez la date"
+			       required th:value="${compteE.dateCreation.toString().split(' ')[0]}" type="text">
+			<label><b>solde</b></label>
+			<input name="solde" placeholder="Entrez le  solde" required th:value="${compteE.solde}" type="text">
+			<label>
+				<span th:if="${compteE.class.simpleName=='CompteCourant'}" th:text="Decouvert"></span>
+				<span th:if="${compteE.class.simpleName=='CompteEpargne'}" th:text="Taux"></span>
+			</label>
+			<input name="dt" placeholder="Entrez decouvert" required
+			       th:if="${compteE.class.simpleName=='CompteCourant'}" th:value="${compteE.decouvert}" type="text">
+			<input name="dt" placeholder="Entrez decouvert" required
+			       th:if="${compteE.class.simpleName=='CompteEpargne'}" th:value="${compteE.taux}" type="text">
+
+
+			<button class="btn" type="submit">Enregistrer</button>
+			<button class="btn cancel" onclick="closeForm()" type="button">Annuler</button>
+		</form>
+
+
+	</div>
+
+	
+
+</div>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html
+		xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+	<meta charset="UTF-8">
+	<title>Gestion des agents</title>
+	<link href="css/bootstrap.css" rel="stylesheet" th:href="@{/css/bootstrap.css}" type="text/css">
+	<link href="css/form.css" rel="stylesheet" th:href="@{/css/form.css}" type="text/css">
+</head>
+<script>
+    function closeForm() {
+        document.getElementById("myForm").style.display = "none";
+    }
+
+    function closeFormAdd() {
+        document.getElementById("add").style.display = "none";
+    }
+</script>
+<body>
+<div class="container-fluid" sec:authorize="hasRole('ROLE_AD')">
+	<!-- nav bar-->
+	<header>
+		<nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a class="navbar-brand" th:href="@{/index}">Home</a>
+				</div>
+				<ul class="nav navbar-nav">
+					<li class="active" sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_agents}">Gestion des agents</a></li>
+					<li sec:authorize="hasRole('ROLE_AD')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_clients}">Gestion des clients</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_comptes}">Gestion des comptes</a></li>
+					<li sec:authorize="hasRole('ROLE_AG')"><a th:href="@{/gestion_des_operations}">Gestion des operations</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a th:href="@{/logout}">Se déconnecter</a></li>
+					</a></li>
+				</ul>
+			</div>
+		</nav>
+	</header>
+
+	<!-- recherche-->
+	<form method="post" th:action="@{/gestion_des_agents/rechercheAgent}">
+		<div style="margin-bottom: 10px;text-align: center">
+			<div>
+				<input name="input" placeholder="recherche" required style="text-align: center" type="text">
+			</div>
+			<div>
+				<input checked name="par"
+				       type="radio"
+				       value="code">
+				<label>par code</label>
+				<input name="par"
+				       type="radio"
+				       value="nom">
+				<label>par nom</label>
+				<input name="par"
+				       type="radio"
+				       value="cin">
+				<label>par cin</label>
+				<button class="btn btn-primary" type="submit">Recherche</button>
+			</div>
+			<div STYLE="text-align: right">
+				<a  class="btn btn-success btn-sm"
+				   th:href="@{/gestion_des_agents/ajouter}">+ Ajouter Agent</a>
+			</div>
+
+		</div>
+	</form>
+
+	<!-- liste des agents-->
+	<div class="panel panel-success">
+		<div class="panel-heading">Liste des agents</div>
+		<div class="panel-body">
+			<table class="table table-striped" th:if="${agentPage}">
+				<tr>
+					<th>code</th>
+					<th>cin</th>
+					<th>nom</th>
+					<th>prenom</th>
+					<th>telephone</th>
+					<th>ville</th>
+					<th>email</th>
+					<th>date de naissance</th>
+				</tr>
+				<tr th:each="c:${agentPage}">
+					<td th:text="${c.code_utilisateur}"></td>
+					<td th:text="${c.cin}"></td>
+					<td th:text="${c.nom}"></td>
+					<td th:text="${c.prenom}"></td>
+					<td th:text="${c.telephone}"></td>
+					<td th:text="${c.ville}"></td>
+					<td th:text="${c.email}"></td>
+					<td th:text="${c.date_naissance.toString().split(' ')[0]}"></td>
+
+					<td><a class="btn btn-primary btn-xs"
+					       th:href="@{/gestion_des_agents/edit(codeAgent=${c.code_utilisateur},page=${numPage})}">Modifier</a>
+					</td>
+					<td><a class="btn btn-danger btn-xs"
+					       th:href="@{/gestion_des_agents/supprimer(codeAgent=${c.code_utilisateur},page=${numPage})}">Supprimer</a>
+					</td>
+
+				</tr>
+			</table>
+			<div class="container-fluid">
+				<ul class="nav nav-pills">
+					<li th:each="p,status:${nombrePage}">
+						<a href="#" style="text-decoration: underline;background-color: #bce8f1"
+						   th:if="${status.index==numPage}"
+						   th:text="${status.index}"></a>
+						<a th:href="@{/gestion_des_agents(page=${status.index})}"
+						   th:if="${status.index != numPage}"
+						   th:text="${status.index}"></a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<!-- update form-->
+	<div class="form-popup" id="myForm" th:if="${agentE}">
+		<form class="form-container" method="post" th:action="@{/gestion_des_agents/modifier}">
+
+			<input name="page" th:value="${numPage}" type="hidden">
+			<input name="codeAgent" th:value="${agentE.code_utilisateur}" type="hidden">
+
+			<label><b>Cin</b></label>
+			<input name="cin" placeholder="Cin" required th:value="${agentE.cin}" type="text">
+
+			<label><b>Prenom</b></label>
+			<input name="prenom" placeholder="Prenom" required th:value="${agentE.prenom}" type="text">
+
+			<label><b>Nom</b></label>
+			<input name="nom" placeholder="Nom" required th:value="${agentE.nom}" type="text">
+
+			<label><b>Telephone</b></label>
+			<input name="tele" placeholder="Telephone" required th:value="${agentE.telephone}" type="text">
+
+			<label><b>Ville</b></label>
+			<input name="ville" placeholder="ville" required th:value="${agentE.ville}" type="text">
+			<label><b>Email</b></label>
+			<input name="email" placeholder="email" required th:value="${agentE.email}" type="text">
+
+			<label>date naissance :</label>
+			<input name="date" placeholder="Date" required th:value="${agentE.date_naissance.toString().split(' ')[0]}"
+			       type="text">
+
+
+			<button class="btn" type="submit">Enregistrer</button>
+			<button class="btn cancel" onclick="closeForm()" type="button">Annuler</button>
+		</form>
+
+
+	</div>
+
+	<!-- add form-->
+	<div class="form-popup" id="add" th:if="${ajouter}">
+		<form class="form-container" method="post" th:action="@{/gestion_des_agents/ajouterAgent}">
+			<label><b>Cin</b></label>
+			<input name="cin" placeholder="Cin" required type="text">
+			<label><b>Prenom</b></label>
+			<input name="prenom" placeholder="Prenom" required type="text">
+			<label><b>Nom</b></label>
+			<input name="nom" placeholder="Nom" required type="text">
+			<label><b>Telephone</b></label>
+			<input name="tele" placeholder="Telephone" required type="text">
+			<label><b>Ville</b></label>
+			<input name="ville" placeholder="ville" required type="text">
+			<label><b>Email</b></label>
+			<input name="email" placeholder="email" required type="text">
+			<label>date naissance :</label>
+			<input name="date" placeholder="yyyy-mm-dd" th:value="2010-12-30" required type="text">
+
+
+			<button class="btn" type="submit">Ajouter</button>
+			<button class="btn cancel" onclick="closeFormAdd()" type="button">Cancel</button>
+		</form>
+
+
+	</div>
+
+	<!-- alert msg-->
+	<div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('input')=='false'}">
+			<script>
+                alert("le code doit être un nombre entier");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('m')=='1'}">
+			<script>
+                alert("Mise à jour terminée avec succès");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('m')=='0'}">
+			<script>
+                alert("Erreur de mise à jour");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('s')=='1'}">
+			<script>
+                alert("L'agent a été bien  supprimé");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('s')=='0'}">
+			<script>
+                alert("Erreur de suppression");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('a')=='0'}">
+			<script>
+                alert("Erreur d'ajout des données");
+			</script>
+		</div>
+		<div class="text-danger"
+		     th:if="${#httpServletRequest.getParameter('a')=='1'}">
+			<script>
+                alert("L'agent a été bien ajouté");
+			</script>
+		</div>
+	</div>
+
+	
+
+</div>
+
+</body>
+</html>
